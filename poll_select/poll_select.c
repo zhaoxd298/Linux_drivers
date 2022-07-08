@@ -302,7 +302,7 @@ static int __init my_fifo_init(void)
 	}
 
 	ret = misc_register(&misc);
-	printk("<0> hello driver dev_init!\n");
+	printk(KERN_ERR "hello driver dev_init!\n");
 
     return ret;
 }
@@ -312,7 +312,7 @@ static void __exit my_fifo_exit(void)
 	release_fifo_dev(&fifo_devp);
 
 	misc_deregister(&misc);
-	printk("<0> hello driver dev_exit!\n");
+	printk(KERN_ERR "hello driver dev_exit!\n");
 }
 
 MODULE_LICENSE("GPL");

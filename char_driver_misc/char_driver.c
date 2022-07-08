@@ -9,13 +9,10 @@
 #define MEM_SIZE 4096
 
 struct mem_dev                                      
-{    
-	struct cdev dev;
-	dev_t devno;
-	struct class *devclass;
-
+{                                                        
 	char *buf;                      
 	unsigned long buf_size;  
+	//struct cdev cdev;      
 };
 
 struct mem_dev *mem_devp;
@@ -113,6 +110,12 @@ static struct file_operations char_driver_fops = {
 	.release =	char_driver_release,
 };
 
+static struct miscdevice misc = {
+	.minor = MISC_DYNAMIC_MINOR,
+	.name = "char_driver",
+	.fops = &char_driver_fops,
+};
+
 static struct mem_dev* alloc_mem_dev(void)
 {
 	struct mem_dev* devp = kmalloc(sizeof(struct mem_dev), GFP_KERNEL);
@@ -157,35 +160,7 @@ static int __init char_driver_init(void)
 		return - ENOMEM;
 	}
 
-	ret = alloc_chrdev_region(&mem_devp->devno, 0, 1, "char_driver"); 
-	if (ret) {
-		printk("alloc dev-no failed.\n");
-		release_mem_dev(&mem_devp);
-		return ret;
-	}
-
-	cdev_init(&mem_devp->dev, &char_driver_fops);
-    mem_devp->dev.owner = THIS_MODULE;
-    mem_devp->dev.ops = &char_driver_fops;
-    ret = cdev_add(&mem_devp->dev, mem_devp->devno, 1);
-    if (ret) {
-    	unregister_chrdev_region(mem_devp->devno, 1);
-		release_mem_dev(&mem_devp);
-        return ret;
-    }
-
-    mem_devp->devclass = class_create(THIS_MODULE, "char_class");
-	if (IS_ERR(mem_devp->devclass)) 
-	{
-		printk("class_create failed.\n");
-		cdev_del(&mem_devp->dev);
-		release_mem_dev(&mem_devp);
-		ret = -EIO;
-		return ret;
-	}
-	
-    device_create(mem_devp->devclass, NULL, mem_devp->devno, NULL, "char_driver");
-
+	ret = misc_register(&misc);
 	printk("<0> hello driver dev_init!\n");
 
     return ret;
@@ -193,12 +168,9 @@ static int __init char_driver_init(void)
 
 static void __exit char_driver_exit(void)
 {
-	device_destroy(mem_devp->devclass, mem_devp->devno);
-    class_destroy(mem_devp->devclass);
-    cdev_del(&mem_devp->dev);
-    unregister_chrdev_region(mem_devp->devno, 1);
 	release_mem_dev(&mem_devp);
 
+	misc_deregister(&misc);
 	printk("<0> hello driver dev_exit!\n");
 }
 
