@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <string.h> 
+#include <unistd.h>
 
 int main(int argc, char *argv[])
 {
@@ -14,6 +15,7 @@ int main(int argc, char *argv[])
     fd = open("/dev/my_fifo", O_RDWR);
     if(0 > fd){
         perror("can not open my_fifo");
+        return -1;
     }
 
     while (1) {
