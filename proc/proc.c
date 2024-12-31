@@ -27,17 +27,29 @@ static ssize_t proc_read(struct file *filp, char __user *buf, size_t count, loff
 
 static ssize_t proc_write(struct file *filp, const char __user *buf, size_t len, loff_t *ppos)
 {
-	int ret;
+	int ret, rd_size = 0;
 	char tmp_buf[64] = {0};
 
-	ret = copy_from_user(tmp_buf, buf, len);
-	if (ret) {
-		return -EFAULT;
+	while (len > 0) {
+		if (len > sizeof(tmp_buf)) {
+			rd_size = sizeof(tmp_buf);
+		} else {
+			rd_size = len;
+		}
+
+		memset(tmp_buf, 0, sizeof(tmp_buf));
+		ret = copy_from_user(tmp_buf, buf + *ppos, sizeof(tmp_buf));
+		if (ret) {
+			return -EFAULT;
+		}
+
+		len -= rd_size;
+		*ppos += rd_size;
+		pr_err("<%s:%d> %s\n", __func__, __LINE__, tmp_buf);
 	}
+	
 
-	pr_err("<%s:%d> %s\n", __func__, __LINE__, tmp_buf);
-
-	return len;
+	return *ppos;
 }
 
 static  const struct proc_ops proc_ops = {
