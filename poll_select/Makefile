@@ -4,9 +4,9 @@ else
 	KDIR := /lib/modules/$(shell uname -r)/build
 all:
 	make -C $(KDIR) M=$(shell pwd) modules
-	rmmod poll_select
+	-rmmod poll_select
 	insmod poll_select.ko
-app:
+
 	gcc app_read.c -o read
 	gcc app_write.c -o write
 clean:

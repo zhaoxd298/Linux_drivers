@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	max_fd = 1;
 
 	while (1) {
-		ret = poll(p_fds,max_fd+1, -1);			/* -1表示阻塞，不超时 */
+		ret = poll(p_fds, max_fd+1, -1);			/* -1表示阻塞，不超时 */
 		if (ret < 0) {
 			perror("poll error");
 			close(fd);
