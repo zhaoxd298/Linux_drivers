@@ -4,7 +4,7 @@ else
 	KDIR := /lib/modules/$(shell uname -r)/build
 all:
 	make -C $(KDIR) M=$(shell pwd) modules
-	rmmod my_fifo
+	-rmmod my_fifo
 	insmod my_fifo.ko
 app:
 	gcc app_read.c -o read
