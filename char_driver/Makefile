@@ -4,7 +4,8 @@ else
 	KDIR := /lib/modules/$(shell uname -r)/build
 all:
 	make -C $(KDIR) M=$(shell pwd) modules
-	rmmod char_driver
+	gcc app.c -o app
+	-rmmod char_driver
 	insmod char_driver.ko
 clean:
 	rm -rf *.ko *.o *.mod.o *.mod.c *.symvers  modul* .*.cmd .tmp_versions/ *.mod

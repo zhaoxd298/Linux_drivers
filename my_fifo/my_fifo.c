@@ -19,7 +19,7 @@
 
 #define MEM_SIZE 4095
 
-struct fifo_dev                                     
+typedef struct fifo_dev                                     
 {                                                        
 	char *buf;             		// 缓冲区         
 	unsigned long buf_size;  	// 缓冲区总大小
@@ -28,7 +28,7 @@ struct fifo_dev
 	struct semaphore sem;		// 信号量
 	wait_queue_head_t rd_qeue;	// 读操作等待队列
 	wait_queue_head_t wr_qeue;	// 写操作等待队列
-};
+} fifo_dev_t;
 
 struct fifo_dev *fifo_devp;
 

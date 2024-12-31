@@ -5,10 +5,14 @@
 #include <linux/slab.h>
 #include <linux/cdev.h>
 #include <linux/miscdevice.h>
+#include <linux/kernel.h>   // 包含内核相关的函数
+#include <linux/fs.h>       // 包含文件系统相关的函数
+#include <linux/device.h>   // 包含设备相关的函数
+#include <linux/version.h>
 
 #define MEM_SIZE 4096
 
-struct mem_dev                                      
+typedef struct mem_dev                                      
 {    
 	struct cdev dev;
 	dev_t devno;
@@ -16,13 +20,20 @@ struct mem_dev
 
 	char *buf;                      
 	unsigned long buf_size;  
-};
+} mem_dev_t;
 
 struct mem_dev *mem_devp;
 
 static int char_driver_open(struct inode *inode, struct file *filp)
 {
-	filp->private_data = mem_devp;		// 将全局变量mem_devp赋给filp->private_data，减少对全局变量的依赖
+	mem_dev_t *mem_dev = container_of(inode->i_cdev, mem_dev_t, dev);
+	if (NULL == mem_dev)
+	{
+		pr_err("invalid parameter!\n");
+		return -1;
+	}
+	
+	filp->private_data = mem_dev;
 
 	printk("<0> open dev:%d\n", iminor(inode));
 
@@ -159,7 +170,7 @@ static int __init char_driver_init(void)
 
 	ret = alloc_chrdev_region(&mem_devp->devno, 0, 1, "char_driver"); 
 	if (ret) {
-		printk("alloc dev-no failed.\n");
+		pr_err("alloc dev-no failed.\n");
 		release_mem_dev(&mem_devp);
 		return ret;
 	}
@@ -174,7 +185,12 @@ static int __init char_driver_init(void)
         return ret;
     }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+    mem_devp->devclass = class_create("char_class");
+#else
     mem_devp->devclass = class_create(THIS_MODULE, "char_class");
+#endif
+
 	if (IS_ERR(mem_devp->devclass)) 
 	{
 		printk("class_create failed.\n");
