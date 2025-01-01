@@ -7,6 +7,7 @@
 #include <linux/miscdevice.h>
 #include <linux/jiffies.h>
 #include <linux/timer.h>
+#include <linux/version.h>
 
 struct timer_dev                                      
 {    
@@ -24,12 +25,12 @@ void timer_fun(struct timer_list *timer)
 {
 	mod_timer(timer, jiffies + HZ);
 
-	printk(KERN_EMERG "timer:%d\n", timer_cnt++);
+	pr_err("timer:%d\n", timer_cnt++);
 }
 
 static int timer_open(struct inode *inode, struct file *filp)
 {	
-	printk(KERN_EMERG "open dev:%d\n", iminor(inode));
+	pr_err("<%s:%d> open dev:%d\n", __func__, __LINE__, iminor(inode));
 
 	timer_cnt = 0;
 
@@ -54,6 +55,7 @@ static ssize_t timer_write(struct file *filp, const char __user *buffer, size_t 
 
 static int timer_release(struct inode *inode, struct file *filp)
 {
+	pr_err("<%s:%d> close dev:%d\n", __func__, __LINE__, iminor(inode));
 	del_timer(&timer_dev->timer);
 
 	return 0;
@@ -95,8 +97,11 @@ static int __init timer_init(void)
 		timer_dev = NULL;
 		return ret;
 	}
-
-	timer_dev->devclass = class_create(THIS_MODULE, "timer_class");
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+    timer_dev->devclass = class_create("timer_class");
+#else
+    timer_dev->devclass = class_create(THIS_MODULE, "timer_class");
+#endif
 	if (IS_ERR(timer_dev->devclass)) 
 	{
 		printk("class_create failed.\n");

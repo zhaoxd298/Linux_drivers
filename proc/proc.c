@@ -31,8 +31,8 @@ static ssize_t proc_write(struct file *filp, const char __user *buf, size_t len,
 	char tmp_buf[64] = {0};
 
 	while (len > 0) {
-		if (len > sizeof(tmp_buf)) {
-			rd_size = sizeof(tmp_buf);
+		if (len >= sizeof(tmp_buf)) {
+			rd_size = sizeof(tmp_buf) - 1;
 		} else {
 			rd_size = len;
 		}
